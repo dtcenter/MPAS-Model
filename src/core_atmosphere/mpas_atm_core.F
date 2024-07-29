@@ -48,6 +48,7 @@ module atm_core
       use mpas_attlist, only : mpas_modify_att
       use mpas_string_utils, only : mpas_string_replace
       use mpas_atm_halos, only: atm_build_halo_groups, exchange_halo_group
+      use stochastic_physics_mpas, only : stochastic_physics_patinit
 
       implicit none
 
@@ -294,6 +295,9 @@ module atm_core
       ! Prepare the dynamics for integration
       !
       call mpas_atm_dynamics_init(domain)
+      ! 
+      ! init stochastic pattern generation
+      call stochastic_physics_patinit (domain, 64, ierr)
 
    end function atm_core_init
 

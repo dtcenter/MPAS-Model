@@ -2676,8 +2676,8 @@
                 <var name="t2m" type="real" dimensions="nCells Time" packages="bl_mynn_in;bl_ysu_in" units="K"
                      description="2-meter temperature"/>
 
-                <var name="th2m" type="real" dimensions="nCells Time" packages="bl_mynn_in;bl_ysu_in" units="K"
-                     description="2-meter potential temperature"/>
+	<var name="th2m" type="real" dimensions="nCells Time" packages="bl_mynn_in;bl_ysu_in" units="K"
+	     description="2-meter potential temperature"/>
 
 
                 <!-- ================================================================================================== -->
@@ -3085,6 +3085,9 @@
                      description="Total cell-centered meridional wind tendency from physics"
                      persistence="scratch" />
  
+                <var name="stoch_pattern" type="real" dimensions="nVertLevels nCells" units="%"
+                     description="Perturbation pattern for stochastic physics" />
+
 #ifdef DO_PHYSICS
                 <!-- ================================================================================================== -->
                 <!-- TENDENCIES FROM PARAMETERIZATION OF CONVECTION:                                                    -->
