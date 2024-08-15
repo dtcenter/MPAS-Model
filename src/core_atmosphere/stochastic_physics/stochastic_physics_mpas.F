@@ -89,6 +89,7 @@ subroutine stochastic_physics_patinit (domain, levs, ierr)
       call mpas_pool_get_subpool(block%structs,'mesh' ,mesh)
       call mpas_pool_get_subpool(block%structs,'tend_physics' ,tend_physics)
       call mpas_pool_get_array(tend_physics,'tend_physics',st_pat)
+      block => block % next
     enddo
 
     ierr = 0
