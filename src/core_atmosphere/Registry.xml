@@ -32,6 +32,10 @@
                      description="The number of atmospheric layers"/>
                 <dim name="nVertLevelsP1"      definition="nVertLevels+1"
                      description="The number of atmospheric levels, always one more than the number of layers"/>
+                <dim name="lon_for"      definition="504"
+                     description="The number of longitude points for the Gaussian grid"/>
+                <dim name="lat_leg"      definition="248"
+                     description="The number of latitude points for the Gaussian grid"/>
 
 #ifdef DO_PHYSICS
                 <dim name="nMonths"            definition="namelist:months"
@@ -979,6 +983,8 @@
 			<var name="ke"/>
 			<var name="uReconstructZonal"/>
 			<var name="uReconstructMeridional"/>
+                        <var name="stoch_pattern_sppt"/>
+                        <var name="stoch_pattern_gg"/>
 
                         <!-- Begin Ertel PV diagnostics defined in diagnostics/Registry_pv.xml -->
 			<var name="ertel_pv"/>
