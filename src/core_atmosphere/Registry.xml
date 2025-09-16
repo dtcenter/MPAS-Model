@@ -4214,6 +4214,11 @@
                      description="Total cell-centered meridional wind tendency from physics"
                      persistence="scratch" />
  
+                <var name="stoch_pattern_sppt" type="real" dimensions="nVertLevels nCells Time" units="%"
+                     description="Perturbation pattern for stochastic physics SPPT scheme" />
+
+                <var name="stoch_pattern_gg" type="real" dimensions="lon_for lat_leg Time" units="%"
+                     description="Perturbation pattern for stochastic physics, on Gaussian grid" />
 #ifdef DO_PHYSICS
                 <!-- ================================================================================================== -->
                 <!-- TENDENCIES FROM PARAMETERIZATION OF CLOUD MICROPHYSICS:                                            -->
@@ -4722,5 +4727,6 @@
 
 #ifdef DO_PHYSICS
 #include "physics/Registry_noahmp.xml"
+#include "stochastic_physics/Registry_stoch_physics.xml"
 #endif
 </registry>
