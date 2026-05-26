@@ -112,6 +112,11 @@ int generate_streams(ezxml_t registry, FILE* fd, char *stream_file_prefix, int o
 	char filename[256];
 
 	int write_stream, write_member, stream_written, filetype;
+	int is_duplicate;
+
+#define MAX_SEEN_STREAMS 256
+	char seen_stream_names[MAX_SEEN_STREAMS][256];
+	int n_seen_streams = 0;
 
 	FILE *fd2;
 
@@ -181,12 +186,24 @@ int generate_streams(ezxml_t registry, FILE* fd, char *stream_file_prefix, int o
 				// If stream doesn't contain the key, make it writable anyway.
 				if ( write_stream == -1 ) write_stream = 1;
 
+				// Check if a stream with this name has already been written.
+				is_duplicate = 0;
+				for (int si = 0; si < n_seen_streams; si++) {
+					if (strcmp(seen_stream_names[si], name) == 0) { is_duplicate = 1; break; }
+				}
+
 				if ( write_stream ){
-					write_stream_header(stream_xml, fd);
+					if ( !is_duplicate ) {
+						write_stream_header(stream_xml, fd);
+						if ( n_seen_streams < MAX_SEEN_STREAMS )
+							strncpy(seen_stream_names[n_seen_streams++], name, 255);
+					}
 					stream_written = 1;
 					if ( filetype == SEPARATE ) {
-						fprintf(fd, "\t<file name=\"%s\"/>\n", filename);
-						fd2 = fopen(filename, "w+");
+						if ( !is_duplicate )
+							fprintf(fd, "\t<file name=\"%s\"/>\n", filename);
+						// Append for duplicates so prior variables are preserved.
+						fd2 = fopen(filename, is_duplicate ? "a+" : "w+");
 					}
 				}
 
@@ -304,7 +321,8 @@ int generate_streams(ezxml_t registry, FILE* fd, char *stream_file_prefix, int o
 				}
 
 				if ( stream_written == 1 ) {
-					fprintf(fd, "</stream>\n\n");
+					if ( !is_duplicate )
+						fprintf(fd, "</stream>\n\n");
 					if ( filetype == SEPARATE ) {
 						fclose(fd2);
 					}
