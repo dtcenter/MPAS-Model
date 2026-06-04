@@ -915,6 +915,9 @@
 			<var name="uReconstructZonal"/>
 			<var name="uReconstructMeridional"/>
                         <var name="stoch_pattern_sppt"/>
+                        <var name="stoch_pattern_skebu"/>
+                        <var name="stoch_pattern_skebv"/>
+                        <var name="stoch_pattern_skebt"/>
                         <var name="stoch_pattern_gg"/>
 
                         <!-- Begin Ertel PV diagnostics defined in diagnostics/Registry_pv.xml -->
@@ -3244,11 +3247,40 @@
                      description="Total cell-centered meridional wind tendency from physics"
                      persistence="scratch" />
  
+                <!-- ================================================================================================== -->
+                <!-- ... Stochastically Perturbed Parametrisation Tendencies (SPPT):                                          -->
+                <!-- ================================================================================================== -->
+
                 <var name="stoch_pattern_sppt" type="real" dimensions="nVertLevels nCells Time" units="%"
                      description="Perturbation pattern for stochastic physics SPPT scheme" />
 
                 <var name="stoch_pattern_gg" type="real" dimensions="lon_for lat_leg Time" units="%"
                      description="Perturbation pattern for stochastic physics, on Gaussian grid" />
+
+                <!-- ================================================================================================== -->
+                <!-- ... Stochastic Kinetic Energy Backscatter (SKEB):                                          -->
+                <!-- ================================================================================================== -->
+
+                <var name="stoch_pattern_skebu" type="real" dimensions="nVertLevels nCells Time" units="%"
+                     description="Perturbation pattern for stochastic physics SKEB scheme, u component" />
+
+                <var name="stoch_pattern_skebv" type="real" dimensions="nVertLevels nCells Time" units="%"
+                     description="Perturbation pattern for stochastic physics SKEB scheme, v component" />
+
+                <var name="stoch_pattern_skebt" type="real" dimensions="nVertLevels nCells Time" units="%"
+                     description="Perturbation pattern for stochastic physics SKEB scheme, potential temp" />
+
+                <var name="diss_est_u" type="real" dimensions="nVertLevels nCells Time" units="m^2s^{-2}"
+                     description="dissipation rate estimate stream function -u"/>
+
+                <var name="diss_est_v" type="real" dimensions="nVertLevels nCells Time" units="m^2s^{-2}"
+                     description="dissipation rate estimate stream function -v"/>
+
+                <var name="diss_est_th" type="real" dimensions="nVertLevels nCells Time" units="m^2s^{-2}"
+                     description="dissipation rate estimate temperature"/>
+
+                <var name="u_skeb_pert" type="real" dimensions="nVertLevels nEdges Time" units="kg m^{-2} s^{-1}"
+                     description="temporary array for SKEB perturbation normal component on cell edges"/>
 #ifdef DO_PHYSICS
                 <!-- ================================================================================================== -->
                 <!-- TENDENCIES FROM PARAMETERIZATION OF CLOUD MICROPHYSICS:                                            -->
@@ -3551,6 +3583,7 @@
 
                 <var name="ol4" type="real" dimensions="nCells" units="unitless"
                      description="effective orographic length for north-westerly flow"/>
+
         </var_struct>
 #endif
 

@@ -14,10 +14,10 @@
 
  use mpas_atmphys_constants, only: R_d,R_v,degrad
 
+! use mpas_stochastic_physics, only : doskeb
  implicit none
  private
- public:: physics_get_tend
-
+ public:: physics_get_tend, stochastic_physics_perturb_on_edge
 
 !Interface between the physics parameterizations and the non-hydrostatic dynamical core.
 !Laura D. Fowler (send comments to laura@ucar.edu).
@@ -171,6 +171,7 @@
 
  call mpas_pool_get_array(tend,'scalars_tend',tend_scalars)
 
+! if (doskeb(domain)) then
 
 !initialize the tendency for the potential temperature and all scalars due to PBL, convection,
 !and longwave and shortwave radiation:
@@ -220,6 +221,7 @@
               exchange_halo_group)
 
 !clean up any pointers that were allocated with zero size before the call to physics_get_tend_work:
+
  if(size(rucuten) == 0 ) deallocate(rucuten )
  if(size(rvcuten) == 0 ) deallocate(rvcuten )
  if(size(rthcuten) == 0) deallocate(rthcuten)
@@ -242,6 +244,7 @@
  if(size(rnwfablten) == 0) deallocate(rnwfablten)
 
  deallocate(tend_th)
+
 
  end subroutine physics_get_tend
 
@@ -432,8 +435,88 @@
  enddo
  enddo
 
-
  end subroutine physics_get_tend_work
+
+!=================================================================================================================
+ subroutine stochastic_physics_perturb_on_edge(block,mesh,tend_physics,ru_physics,rtheta_physics,exchange_halo_group)
+!=================================================================================================================
+ type(block_type),intent(in),target:: block
+ type(mpas_pool_type),intent(in):: mesh
+ type(mpas_pool_type),intent(in):: tend_physics
+
+ real(kind=RKIND),intent(inout),dimension(:,:):: ru_physics,rtheta_physics
+ procedure(halo_exchange_routine):: exchange_halo_group
+
+ real(kind=RKIND),dimension(:,:),pointer:: diss_est_u, diss_est_v, diss_est_th
+ real(kind=RKIND),dimension(:,:),pointer:: u_skeb
+
+ integer,pointer:: nCells,nCellsSolve,nEdges,nEdgesSolve
+
+ call mpas_pool_get_dimension(mesh,'nCells',nCells)
+ call mpas_pool_get_dimension(mesh,'nEdges',nEdges)
+
+ call mpas_pool_get_array(tend_physics,'diss_est_u',diss_est_u)
+ call mpas_pool_get_array(tend_physics,'diss_est_v',diss_est_v)
+ call mpas_pool_get_array(tend_physics,'diss_est_th',diss_est_th)
+ call mpas_pool_get_array(tend_physics,'u_skeb_pert',u_skeb)
+
+ if(.not. associated(diss_est_u) ) allocate(diss_est_u(0,0) )
+ if(.not. associated(diss_est_v) ) allocate(diss_est_v(0,0) )
+ if(.not. associated(diss_est_th) ) allocate(diss_est_th(0,0) )
+ if(.not. associated(u_skeb) ) allocate(u_skeb(0,0) )
+
+ u_skeb = 0._RKIND
+ rtheta_physics = rtheta_physics + diss_est_th 
+
+ call exchange_halo_group(block%domain,'physics:skebuv')
+ call tend_toEdges(block,mesh,diss_est_u,diss_est_v,u_skeb)
+
+ ru_physics = ru_physics + u_skeb 
+
+ if(size(diss_est_u) == 0 ) deallocate(diss_est_u)
+ if(size(diss_est_v) == 0 ) deallocate(diss_est_v)
+ if(size(diss_est_th) == 0 ) deallocate(diss_est_th)
+ if(size(u_skeb) == 0 ) deallocate(u_skeb)
+
+ end subroutine stochastic_physics_perturb_on_edge
+
+!=================================================================================================================
+ subroutine perturbation_on_edge(block,mesh,nCells,nEdges,ru_physics,rtheta_physics, &
+                                 diss_est_u,diss_est_v,dis_est_th,u_skeb,exchange_halo_group)
+!=================================================================================================================
+ type(block_type),intent(in),target:: block
+ type(mpas_pool_type),intent(in):: mesh
+
+ integer,intent(in):: nCells,nEdges
+ real(kind=RKIND),intent(inout),dimension(nVertLevels,nEdges+1):: ru_physics
+ real(kind=RKIND),intent(inout),dimension(nVertLevels,nCells+1):: rtheta_physics
+
+ real(kind=RKIND),intent(in),dimension(nVertLevels,nCells+1):: diss_est_u, diss_est_v, dis_est_th
+ real(kind=RKIND),intent(inout),dimension(nVertLevels,nEdges+1):: u_skeb
+ procedure(halo_exchange_routine):: exchange_halo_group
+
+! real(kind=RKIND),dimension(:,:),pointer:: u_skeb
+
+! allocate (u_skeb(nVertLevels,nEdges+1)) 
+! rtheta_physics = rtheta_physics + dis_est_th
+!print*, 'diss_est_u, max (bf halo exchange)', maxval(diss_est_u)
+!print*, 'diss_est_v, max (bf halo exchange)', maxval(diss_est_v)
+! call exchange_halo_group(block%domain,'physics:skebuv')
+!print*, 'diss_est_u, max (aft halo exchange)', maxval(diss_est_u)
+!print*, 'diss_est_v, max (aft halo exchange)', maxval(diss_est_v)
+! call tend_toEdges(block,mesh,diss_est_u,diss_est_v,u_skeb_pert)
+!print*, 'u_skeb_pert, max', maxval(u_skeb_pert(:,1:nEdges+1))
+
+ u_skeb = 0._RKIND
+
+ call exchange_halo_group(block%domain,'physics:skebuv')
+ call tend_toEdges(block,mesh,diss_est_u,diss_est_v,u_skeb)
+
+print*, 'u_skeb, max', maxval(u_skeb(:,1:nEdges+1))
+ ru_physics(1:nVertLevels,1:nEdges) = ru_physics(1:nVertLevels,1:nEdges) + u_skeb(1:nVertLevels,1:nEdges)
+
+! deallocate(u_skeb)
+ end subroutine perturbation_on_edge
 
 !=================================================================================================================
  subroutine tend_toEdges(block,mesh,Ux_tend,Uy_tend,U_tend)

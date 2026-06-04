@@ -31,7 +31,7 @@ module atm_time_integration
    use mpas_atmphys_driver_microphysics
    use mpas_atmphys_todynamics
    use mpas_atmphys_utilities
-   use mpas_stochastic_physics, only : stochastic_physics_pattern_apply
+   use mpas_stochastic_physics, only : stochastic_physics_pattern_apply, dosppt, doskeb
 #endif
 
    use mpas_atm_boundaries, only : nSpecZone, nRelaxZone, nBdyZone, mpas_atm_get_bdy_state, mpas_atm_get_bdy_tend  ! regional_MPAS addition
@@ -725,11 +725,13 @@ module atm_time_integration
       dynamics_substep = 1
 
 ! apply random perturbation pattern to the tendency
-      tend_names(1) = "rucuten"
-      tend_names(2) = "rvcuten"
-      tend_names(3) = "rublten"
-      tend_names(4) = "rvblten"
-      call stochastic_physics_pattern_apply(domain, 4, tend_names, ierr)
+      if (dosppt(domain)) then
+        tend_names(1) = "rucuten"
+        tend_names(2) = "rvcuten"
+        tend_names(3) = "rublten"
+        tend_names(4) = "rvblten"
+        call stochastic_physics_pattern_apply(domain, 4, tend_names, ierr)
+      endif
 
       call physics_get_tend( block, mesh, state, diag, tend, tend_physics, &
                              block % configs, rk_step, dynamics_substep, &
@@ -738,9 +740,23 @@ module atm_time_integration
       call mpas_timer_stop('physics_get_tend')
 
 ! apply random perturbation pattern to the tendency
-      tend_names(1) = "tend_rtheta_physics"
+      if (dosppt(domain)) then
+        tend_names(1) = "tend_rtheta_physics"
 !      tend_names(2) = "tend_rho_physics"
-      call stochastic_physics_pattern_apply(domain, 1, tend_names, ierr)
+        call stochastic_physics_pattern_apply(domain, 1, tend_names, ierr)
+      endif
+
+      if (doskeb(domain)) then
+        tend_names(1) = "diss_est_uv"
+        call stochastic_physics_pattern_apply(domain, 1, tend_names, ierr)
+        tend_names(1) = "diss_est_th"
+        call stochastic_physics_pattern_apply(domain, 1, tend_names, ierr)
+! add perturbed dissipation rate estimates to the tendencies 
+        call stochastic_physics_perturb_on_edge(block,mesh,tend_physics,tend_ru_physics, &
+                                                tend_rtheta_physics,exchange_halo_group)
+      endif
+
+      
 #else
 #ifndef MPAS_CAM_DYCORE
       !

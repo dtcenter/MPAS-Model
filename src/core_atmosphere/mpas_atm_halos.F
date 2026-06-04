@@ -178,6 +178,9 @@ module mpas_atm_halos
          call mpas_dmpar_exch_group_add_field(domain, 'physics:cuten', 'rucuten', timeLevel=1, haloLayers=(/1,2/))
          call mpas_dmpar_exch_group_add_field(domain, 'physics:cuten', 'rvcuten', timeLevel=1, haloLayers=(/1,2/))
 #endif
+         call mpas_dmpar_exch_group_create(domain, 'physics:skebuv')
+         call mpas_dmpar_exch_group_add_field(domain, 'physics:skebuv', 'diss_est_u', timeLevel=1, haloLayers=(/1,2/))
+         call mpas_dmpar_exch_group_add_field(domain, 'physics:skebuv', 'diss_est_v', timeLevel=1, haloLayers=(/1,2/))
 
          !
          ! Set routine to exchange a halo group
@@ -311,6 +314,10 @@ module mpas_atm_halos
          call mpas_halo_exch_group_add_field(domain, 'physics:cuten', 'rvcuten', timeLevel=1, haloLayers=(/1,2/))
          call mpas_halo_exch_group_complete(domain, 'physics:cuten')
 #endif
+         call mpas_halo_exch_group_create(domain, 'physics:skebuv')
+         call mpas_halo_exch_group_add_field(domain, 'physics:skebuv', 'diss_est_u', timeLevel=1, haloLayers=(/1,2/))
+         call mpas_halo_exch_group_add_field(domain, 'physics:skebuv', 'diss_est_v', timeLevel=1, haloLayers=(/1,2/))
+         call mpas_halo_exch_group_complete(domain, 'physics:skebuv')
 
          !
          ! Set routine to exchange a halo group
@@ -398,6 +405,7 @@ module mpas_atm_halos
          call mpas_dmpar_exch_group_destroy(domain, 'physics:blten')
          call mpas_dmpar_exch_group_destroy(domain, 'physics:cuten')
 #endif
+         call mpas_dmpar_exch_group_destroy(domain, 'physics:skebuv')
 
       else if (trim(config_halo_exch_method) == 'mpas_halo') then
 
@@ -434,6 +442,7 @@ module mpas_atm_halos
          call mpas_halo_exch_group_destroy(domain, 'physics:blten')
          call mpas_halo_exch_group_destroy(domain, 'physics:cuten')
 #endif
+         call mpas_halo_exch_group_destroy(domain, 'physics:skebuv')
 
          call mpas_halo_finalize(domain)
 
